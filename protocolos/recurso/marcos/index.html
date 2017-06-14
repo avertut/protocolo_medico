@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Protocolo Médico by Marcos Oliveira</title>
+
+    <link rel="icon" href="../img/logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/FortAwesome/Font-Awesome/master/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../dist/css/jquery.orgchart.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="style.css">
+	
+<style type="text/css">
+	#root {
+		position:absolute;
+		height:300px;
+		width:350px;
+		background-color:#F4F4F4;
+		border:1px solid #333;
+		padding:10px;
+		}
+
+	#handle {
+		margin:2px;
+		padding:5px;
+		width: 98%;
+		color:orange;
+		background-color: #000;
+		font-weight: bold;
+		}
+	#rectangle{
+	    width:80px;
+	    height:10px;
+	    
+}
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+
+/**************************************************
+ * dom-drag.js
+ * 09.25.2001
+ * www.youngpup.net
+ * Script featured on Dynamic Drive (http://www.dynamicdrive.com) 12.08.2005
+ **************************************************
+ * 10.28.2001 - fixed minor bug where events
+ * sometimes fired off the handle, not the root.
+ **************************************************/
+
+var Drag = {
+
+	obj : null,
+// parameter 0 = the drag handle                                 (object or object ID name)
+// parameter 1 = the drag root                                   (object or object ID name)
+// parameter 2 = the number of days to restore the last position (number, default = no persistence)
+	init : function(o, oRoot, days, minX, maxX, minY, maxY, bSwapHorzRef, bSwapVertRef, fXMapper, fYMapper)
+	{
+       o=document.getElementById(o)||o;
+       oRoot=document.getElementById(oRoot)||oRoot;
+  	   o.onmousedown	= Drag.start;
+
+		o.hmode			= bSwapHorzRef ? false : true ;
+		o.vmode			= bSwapVertRef ? false : true ;
+
+		o.root = oRoot && oRoot != null ? oRoot : o ;
+        o.days=typeof(days)=='number'?days:-1;
+        var xy=this.cookie?this.cookie(o.id+'='):null;
+        if (xy&&o.days>0){
+         xy=xy.split(',');
+         o.root.style.left=xy[0]+'px';
+         o.root.style.top=xy[1]+'px';
+        }
+		if (o.hmode  && isNaN(parseInt(o.root.style.left  ))) o.root.style.left   = "0px";
+		if (o.vmode  && isNaN(parseInt(o.root.style.top   ))) o.root.style.top    = "0px";
+		if (!o.hmode && isNaN(parseInt(o.root.style.right ))) o.root.style.right  = "0px";
+		if (!o.vmode && isNaN(parseInt(o.root.style.bottom))) o.root.style.bottom = "0px";
+        o.srt=[o.root.style.left,o.root.style.top];
+
+		o.minX	= typeof minX != 'undefined' ? minX : null;
+		o.minY	= typeof minY != 'undefined' ? minY : null;
+		o.maxX	= typeof maxX != 'undefined' ? maxX : null;
+		o.maxY	= typeof maxY != 'undefined' ? maxY : null;
+
+		o.xMapper = fXMapper ? fXMapper : null;
+		o.yMapper = fYMapper ? fYMapper : null;
+
+		o.root.onDragStart	= new Function();
+		o.root.onDragEnd	= new Function();
+		o.root.onDrag		= new Function();
+	},
+
+	start : function(e)
+	{
+		var o = Drag.obj = this;
+		e = Drag.fixE(e);
+		var y = parseInt(o.vmode ? o.root.style.top  : o.root.style.bottom);
+		var x = parseInt(o.hmode ? o.root.style.left : o.root.style.right );
+		o.root.onDragStart(x, y);
+
+		o.lastMouseX	= e.clientX;
+		o.lastMouseY	= e.clientY;
+
+		if (o.hmode) {
+			if (o.minX != null)	o.minMouseX	= e.clientX - x + o.minX;
+			if (o.maxX != null)	o.maxMouseX	= o.minMouseX + o.maxX - o.minX;
+		} else {
+			if (o.minX != null) o.maxMouseX = -o.minX + e.clientX + x;
+			if (o.maxX != null) o.minMouseX = -o.maxX + e.clientX + x;
+		}
+
+		if (o.vmode) {
+			if (o.minY != null)	o.minMouseY	= e.clientY - y + o.minY;
+			if (o.maxY != null)	o.maxMouseY	= o.minMouseY + o.maxY - o.minY;
+		} else {
+			if (o.minY != null) o.maxMouseY = -o.minY + e.clientY + y;
+			if (o.maxY != null) o.minMouseY = -o.maxY + e.clientY + y;
+		}
+
+		document.onmousemove	= Drag.drag;
+		document.onmouseup		= Drag.end;
+
+		return false;
+	},
+
+	drag : function(e)
+	{
+		e = Drag.fixE(e);
+		var o = Drag.obj;
+
+		var ey	= e.clientY;
+		var ex	= e.clientX;
+		var y = parseInt(o.vmode ? o.root.style.top  : o.root.style.bottom);
+		var x = parseInt(o.hmode ? o.root.style.left : o.root.style.right );
+		var nx, ny;
+
+		if (o.minX != null) ex = o.hmode ? Math.max(ex, o.minMouseX) : Math.min(ex, o.maxMouseX);
+		if (o.maxX != null) ex = o.hmode ? Math.min(ex, o.maxMouseX) : Math.max(ex, o.minMouseX);
+		if (o.minY != null) ey = o.vmode ? Math.max(ey, o.minMouseY) : Math.min(ey, o.maxMouseY);
+		if (o.maxY != null) ey = o.vmode ? Math.min(ey, o.maxMouseY) : Math.max(ey, o.minMouseY);
+
+		nx = x + ((ex - o.lastMouseX) * (o.hmode ? 1 : -1));
+		ny = y + ((ey - o.lastMouseY) * (o.vmode ? 1 : -1));
+
+		if (o.xMapper)		nx = o.xMapper(y)
+		else if (o.yMapper)	ny = o.yMapper(x)
+
+		Drag.obj.root.style[o.hmode ? "left" : "right"] = nx + "px";
+		Drag.obj.root.style[o.vmode ? "top" : "bottom"] = ny + "px";
+		Drag.obj.lastMouseX	= ex;
+		Drag.obj.lastMouseY	= ey;
+        if (Drag.obj.id){
+         document.cookie=Drag.obj.id+'='+[nx,ny]+';expires='+(new Date(new Date().getTime()+o.days*86400000).toGMTString())+';path=/';
+		}
+        Drag.obj.root.onDrag(nx, ny);
+		return false;
+	},
+
+	end : function()
+	{
+		document.onmousemove = null;
+		document.onmouseup   = null;
+		Drag.obj.root.onDragEnd(	parseInt(Drag.obj.root.style[Drag.obj.hmode ? "left" : "right"]),
+									parseInt(Drag.obj.root.style[Drag.obj.vmode ? "top" : "bottom"]));
+		Drag.obj = null;
+	},
+
+    cookie:function(nme){
+     var re=new RegExp(nme+'[^;]+','i');
+     if (document.cookie.match(re)){
+      return document.cookie.match(re)[0].split("=")[1];
+     }
+     return null
+    },
+
+    reset:function(id){
+     obj=document.getElementById(id);
+     if (obj&&obj.srt){
+      obj.root.style.left=obj.srt[0];
+      obj.root.style.top=obj.srt[1];
+     }
+    },
+
+	fixE : function(e)
+	{
+		if (typeof e == 'undefined') e = window.event;
+		if (typeof e.layerX == 'undefined') e.layerX = e.offsetX;
+		if (typeof e.layerY == 'undefined') e.layerY = e.offsetY;
+		return e;
+	}
+};
+
+/*]]>*/
+</script>
+<style type="text/css"> 
+.clear{
+  clear: left;
+}
+
+.container {
+  width: 100%;
+  padding: 10px;
+  border: 0px solid;
+  background-color:#cbdccb;
+}
+
+.left {
+  float: left;
+  width: 15%;
+  padding: 5px;
+  border: 1px dotted;
+  border-color:#86a186;
+  text-align: left;
+  background-color:#eaeaea;
+}
+.left1 {
+  float: left;
+  width: 10%;
+  padding: 5px;
+  border: 0px solid;
+  text-align: left;
+}
+.left2 {
+  float: left;  
+  padding: 5px;
+  border: 1px dotted;
+  border-color:#86a186;
+  text-align: left;
+  background-color:#eaeaea;
+  height:90px;
+}
+</style>
+
+
+</head>
+<body>
+<div id="topo">
+<b id="destaque1">PROTOCOLO MÉDICO</b> <img src="img/pills.png" width="128" height="128"> { desafio processo seletivo -  IntMed 2017 }
+</div>
+<div class="container">
+  <div class="clear"></div>
+  
+  <div class="left1">
+   <b>LEGENDA CORES</b>:
+  </div>
+	<div class="left">	
+	<DIV id="rectangle" style="background:#009933;"></DIV>Entrada 
+	<DIV id="rectangle" style="background:#0080ff;"></DIV>Verificações iniciais 
+	<DIV id="rectangle" style="background:#1120a6;"></DIV>Maior atenção 
+	</div>
+	<div class="left">	
+	<DIV id="rectangle" style="background:#996633;"></DIV>Eixo de encaminhamento  
+	<DIV id="rectangle" style="background:#993366;"></DIV>Verificação de idade
+	<DIV id="rectangle" style="background:#00d500;"></DIV>Sequência positiva  
+	</div>
+	<div class="left">
+	<b></b>
+	<DIV id="rectangle" style="background:#cc0066;"></DIV>Atenção ao procedimento  
+	<DIV id="rectangle" style="background:#408080;"></DIV>Encaimnhado
+	<DIV id="rectangle" style="background:rgba(217, 83, 79, 0.8);"></DIV>Anotações  
+	</div>
+	<div class="left2">
+	<img src="img/links.png" width="32" height="32"> <a href="arquivos/estrutura.pdf" target="_blank">Estrutura e Montagem dos Protocolos Clínicos e Diretrizes Terapêuticas (documento referência)</a>
+	<br/>
+	<img src="img/links.png" width="32" height="32"> <a href="http://www.owpoga.com" target="_blank">Desenvolvedor [www.owpoga.com]</a>
+	</div>
+  <div class="clear"></div>
+</div>	
+ <div id="chart-container">
+</div>
+
+
+  <div id="edit-panel" class="view-state">
+    <span id="chart-state-panel" class="radio-panel">
+      <input type="radio" name="chart-state" id="rd-view" value="view" checked="true"><label for="rd-view">View</label>
+      <input type="radio" name="chart-state" id="rd-edit" value="edit"><label for="rd-edit">Edit</label>
+    </span>
+    <label class="selected-node-group">Selecione nó:</label>
+    <input type="text" id="selected-node" class="selected-node-group">
+    <label>Novo nó:</label>
+    <ul id="new-nodelist">
+      <li><input type="text" class="new-node"></li>
+    </ul>
+    <i class="fa fa-plus-circle btn-inputs" id="btn-add-input"></i>
+    <i class="fa fa-minus-circle btn-inputs" id="btn-remove-input"></i>
+    <span id="node-type-panel" class="radio-panel">
+      <input type="radio" name="node-type" id="rd-parent" value="parent"><label for="rd-parent">Parente(raiz)</label>
+      <input type="radio" name="node-type" id="rd-child" value="children"><label for="rd-child">Filho</label>
+      <input type="radio" name="node-type" id="rd-sibling" value="siblings"><label for="rd-sibling">Irmão</label>
+    </span>
+    <button type="button" id="btn-add-nodes">Adicionar</button>
+    <button type="button" id="btn-delete-nodes">Apagar</button>
+    <button type="button" id="btn-reset">Limpar dados</button>
+  </div>
+  <div style="padding:30px;">
+  <div id="fim">
+  	<ul><b>LEGENDA IMAGENS:</b>
+	  	<li><img src="../img/avatar/1.jpg" width="32" height="32"> Inicio do processo</li>
+	  	<li><img src="../img/avatar/2.jpg" width="32" height="32"> Continuidade</li>
+	  	<li><img src="../img/avatar/3.jpg" width="32" height="32"> Alto risco</li>
+	  	<li><img src="../img/avatar/4.jpg" width="32" height="32"> Atenção especial</li>
+	  	<li><img src="../img/avatar/5.jpg" width="32" height="32"> Em Andamento</li>
+	</ul>
+	</div>
+	<div id="fim">
+	<ul>	
+	  	<li><img src="../img/avatar/6.jpg" width="32" height="32"> Colhendo dados</li>
+	  	<li><img src="../img/avatar/7.jpg" width="32" height="32"> Encerrado</li>
+	  	<li><img src="../img/avatar/8.jpg" width="32" height="32"> Examinando</li>
+	  	<li><img src="../img/avatar/9.jpg" width="32" height="32"> Protocolado</li>
+	  	<li><img src="../img/avatar/10.jpg" width="32" height="32"> Aguarda aprovação</li>
+	  	<li><img src="../img/avatar/11.jpg" width="32" height="32"> Em aberto</li>
+	</ul>
+	</div>
+	<div id="fim">
+	<ul><b>Responsável/Candidato</b>:
+	<li><img src="../img/avatar2/8.jpg" width="32" height="32"> Marcos Oliveira</li>	
+	<li><img src="../img/avatar/saude.jpg" width="32" height="32"> Profissional de Saúde</li>	
+	<li><img src="../img/avatar/ead.jpg" width="32" height="32"> Especilista em EAD</li>	
+	<li><img src="../img/avatar/webDev.jpg" width="32" height="32"> WebDeveloper</li>	
+	<li><img src="../img/avatar/game.jpg" width="32" height="32"> GameDeveloper</li>	
+	</ul>	
+	</div>
+	Fonte de pesquisa: http://www.pro-renal.org.br/documentos/06_estrutura.pdf
+	</div>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <script type="text/javascript" src="../../dist/js/jquery.orgchart.js"></script>
+  <script type="text/javascript" src="scripts.js"></script>
+  <script type="text/javascript" src="editar.js"></script>
+   <script type="text/javascript" src="https://cdn.rawgit.com/niklasvh/html2canvas/master/dist/html2canvas.min.js"></script>
+ <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
+ 
+
+
+<body>
+
+<input type="button" name="" value="Reset" onmouseup="Drag.reset('handle')"/>
+<div id="root" style="left:50px; top:100px; overflow-y: auto;cursor: pointer; cursor: hand;">
+	<div id="handle">Como usar?<div style="float: right;"><img src="../img/avatar2/8.jpg"></div></div>
+  <ul>
+  	<li>Este sistema é provido de recursos do tipo "Drag & Drop", isto significa que é possível manipular as posíções de cada nó do "gráfico", bem como desta janela.</li>
+  	<li>Adaptado para uso de dois elementos simultaneamente, sendo um principal e um secundário para eventuais anotações(observações).</li>
+  	<li>No gráfico principal, clique no <b>i</b> (sup.E.) para exibir imagem relativa a etapa do processo.</li>
+  	<li>Selecione o campo arraste e solte na sequência desejada (árvore principal).</li>
+  	<li>Clique no Botão Export para criar uma imagem do Protocolo.</li>
+  	<li>Para adicionar um novo nó, selecione o ponto desejado</li>
+  	<li>É possível adicionar novos nós tanto na árvore principal quanto em observações</li>
+  	
+	</ul>
+
+
+</div>
+
+<script language="javascript">
+// parameter 0 = the drag handle                                 (object or object ID name)
+// parameter 1 = the drag root                                   (object or object ID name)
+// parameter 2 = the number of days to restore the last position (number, default = no persistence)
+	Drag.init('handle','root',1);
+
+
+</script>  
+ <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->  
+  </body>
+  <!--http://www.jqueryscript.net/chart-graph/Fully-Customizable-Organisational-Chart-Plugin-With-jQuery-OrgChart.html
+  http://owpoga.com/soordle/index.php?pagina=Xamaleon
+github
+heruko
+informações básicas de uso/deploy
+  
+  -->
+</html>
